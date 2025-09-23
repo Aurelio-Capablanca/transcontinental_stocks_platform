@@ -5,4 +5,11 @@ cargo add serde_json
 cargo add deadpool-postgres
 cargo add tokio-postgres
 cargo add ring
+
+
+cargo add mongodb
+cargo add bson
+cargo add serde --features derive
+cargo add serde_json
+cargo add dotenvy
 cargo add tesseract
