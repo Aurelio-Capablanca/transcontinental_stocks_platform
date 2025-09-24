@@ -1,31 +1,26 @@
-use mongodb::{
-    Client,
-    bson::doc,
-    options::{ClientOptions, ServerApi, ServerApiVersion},
-};
+use std::sync::Arc;
+
+use bson::doc;
+use mongodb::bson::Document;
+use crate::adapters::database::db_pool;
 
 mod adapters;
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
-    let url = "mongodb://localhost:27017";
-    let mut client_option = ClientOptions::parse(url).await?;
-    let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
-    client_option.server_api = Some(server_api);
-    let client = Client::with_options(client_option);
-    let usage_client: Option<Client> = match client {
-        Ok(client_get) => Some(client_get),
-        Err(err) => {
-            println!("Error for Mongodb client : {:?}", err);
-            None
-        }
-    };
-    let test = usage_client.unwrap()
-        .database("test")
-        .run_command(doc! {"ping":1})
-        .await?;
+    let client = db_pool::create_mongo_connection().await?;
+    let state = db_pool::MongoClient{client : Arc::new(client)};
 
-     println!("Pinged your deployment. You successfully connected to MongoDB!");
-     print!("document One : {:?}",test);
+
+    println!("*****************************************************");
+    let test = &state.client.database("aibdb").collection::<Document>("test");
+    let cursor = test.find(Document::new()).await?;
+
+    // while let Some(res) = cursor.advance().await {
+        
+    // }
+
+    //println!("Collection : {:?}",*test);
+
     Ok(())
 }
