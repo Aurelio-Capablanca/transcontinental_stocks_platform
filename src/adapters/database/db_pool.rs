@@ -1,35 +1,27 @@
 use std::sync::Arc;
+use deadpool_postgres::{Config, Manager, ManagerConfig, Object, Pool, RecyclingMethod};
+use tokio_postgres::{Client, GenericClient, NoTls};
 
-use mongodb::{
-    Client,
-    bson::doc,
-    options::{ClientOptions, ServerApi, ServerApiVersion},
-};
 
-pub struct MongoClient{
-    pub client: Arc<Client>
+pub async fn create_postgres_pool() -> Result<Object<>, Box<dyn std::error::Error>>{
+
+    let mut configuration = Config::new();
+    configuration.host = Some("localhost".to_string());
+    configuration.user = Some("superuserp".to_string());
+    configuration.password = Some("jkl555".to_string());
+    configuration.dbname = Some("transcontinental_stocks".to_string());
+    configuration.manager = Some(ManagerConfig {recycling_method : RecyclingMethod::Fast});
+    
+    // let (client, connection) = tokio_postgres::connect("host=localhost user=superuserp password=jkl555 dbname=transcontinental_stocks ", NoTls)
+    // .await?;
+
+    // tokio::spawn(async move {
+    //     if let Err(e) = connection.await{
+    //         eprint!("Connection error : {}", e);
+    //     }
+    // });
+    let pool : Pool = configuration.create_pool(None, NoTls)?;
+    let object_manager = pool.get().await?;
+    // let client = object_manager.client();
+    Ok(object_manager)
 }
-
-pub async fn create_mongo_connection() -> mongodb::error::Result<Client>{
-     let url = "mongodb://localhost:27017";
-    let mut client_option = ClientOptions::parse(url).await?;
-    let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
-    client_option.server_api = Some(server_api);
-    let client = Client::with_options(client_option);
-    let usage_client: Option<Client> = match client {
-        Ok(client_get) => Some(client_get),
-        Err(err) => {
-            println!("Error for Mongodb client : {:?}", err);
-            None
-        }
-    };
-    let test = usage_client.as_ref().unwrap()
-        .database("test")
-        .run_command(doc! {"ping":1})
-        .await?;
-
-     println!("Pinged your deployment. You successfully connected to MongoDB!");
-     print!("document One : {:?}",test);
-    Ok(usage_client.unwrap())
-}
-
