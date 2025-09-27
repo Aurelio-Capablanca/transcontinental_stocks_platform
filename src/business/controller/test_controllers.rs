@@ -1,20 +1,29 @@
 use std::sync::Arc;
 
 use axum::extract::State;
+use serde::Serialize;
 use tokio_postgres::GenericClient;
 
-use crate::adapters::database::db_pool::DatabaseState;
-
-
+use crate::adapters::{
+    database::db_pool::DatabaseState,
+    general::general_responses::{GeneralResponses, StopOperations},
+};
 
 pub async fn hello_world() -> &'static str {
     "Hello, world!"
 }
 
-pub async fn test_sql(State(status) : State<Arc<DatabaseState>>) {
-    
+#[derive(Serialize)]
+pub struct testSQL {
+    id: i32,
+    constellation: String,
+}
+
+pub async fn test_sql(
+    State(status): State<Arc<DatabaseState>>,
+) -> Result<GeneralResponses<Vec<testSQL>>, StopOperations> {
     let client = status.database.client();
-    
+
     let constellation = "Wyvern".to_string();
     let number_rows = client
         .execute(
@@ -29,9 +38,20 @@ pub async fn test_sql(State(status) : State<Arc<DatabaseState>>) {
         .await
         .unwrap();
 
-    for r in rows {
+    let mut response: Vec<testSQL> = Vec::new();
+    for r in &rows {
         let id: i32 = r.get(0);
         let value: String = r.get(1);
-        println!("id={:?}, col={:?}", id, value);
+        println!("id={:?}, col={:?}", &id, &value);
+        response.push(testSQL {
+            id: id,
+            constellation: value,
+        });
     }
+    Ok(GeneralResponses {
+        message: Some("Successful Connection".to_string()),
+        dataset: Some(response),
+        code: Some(axum::http::StatusCode::OK.to_string()),
+        error: Some("None".to_string()),
+    })
 }

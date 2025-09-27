@@ -1,21 +1,29 @@
 use core::fmt;
-use std::f32::consts::E;
 
-use axum::http::status;
-use axum::response::Response;
+use axum::{
+    Json,
+    response::{IntoResponse, Response},
+};
 use serde::Serialize;
-use serde_json::error;
-use std::error::Error as StdError;
+// use axum::http::status;
+// use serde_json::error;
+// use std::error::Error as StdError;
 
 #[derive(Serialize, Debug)]
 pub struct GeneralResponses<T>
 where
     T: Serialize,
 {
-    message: Option<String>,
-    dataset: Option<T>,
-    code: Option<String>,
-    error: Option<String>,
+    pub message: Option<String>,
+    pub dataset: Option<T>,
+    pub code: Option<String>,
+    pub error: Option<String>,
+}
+
+impl<T: serde::Serialize> IntoResponse for GeneralResponses<T> {
+    fn into_response(self) -> Response {
+        Json(self).into_response()
+    }
 }
 
 pub enum StopOperations {
@@ -88,8 +96,8 @@ impl fmt::Display for StopOperations {
                 mapped_nature_err, severity, schema, column, constraint, datatype, line_error, hint
             ),
             StopOperations::JWT(e) => write!(f, "JWT error: {}", e),
-            StopOperations::InternalMessage(e) => write!(f, "Custom Stop Operation error: {}", e),            
-            StopOperations::JSON(e) => write!(f, "JSON error: {}", e)
+            StopOperations::InternalMessage(e) => write!(f, "Custom Stop Operation error: {}", e),
+            StopOperations::JSON(e) => write!(f, "JSON error: {}", e),
         }
     }
 }
