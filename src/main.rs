@@ -1,28 +1,25 @@
 mod adapters;
 mod business;
 
-use tokio_postgres::GenericClient;
-use crate::adapters::database::db_pool;
+
+use crate::{adapters::database::db_pool, business::controller::test_controllers::test_sql};
+use crate::business::controller::test_controllers;
+use axum::{Router, routing::get};
 use std::sync::Arc;
-
-
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let manager = Arc::new(db_pool::DatabaseState {
+        database: db_pool::create_postgres_pool().await?,
+    });
     
-    let manager = Arc::new(db_pool::create_postgres_pool().await?);
-    let client = manager.client();
-
-    let constellation = "Odin".to_string();
-    let number_rows = client.execute("insert into test_data (strings) values ($1)", &[&constellation]).await.unwrap();
-    println!("executed : {:?}",number_rows);
-    let rows = client.query("select * from test_data td", &[]).await.unwrap();
-    
-    for r in rows {
-        let id : i32 = r.get(0);
-        let value : String = r.get(1);
-        println!("id={:?}, col={:?}",id,value);
-    }
-
+    let app = Router::new()
+        .route("/", get(test_controllers::hello_world))
+        .route("/test-sql", get(test_sql))
+        .with_state(manager);
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:9088").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+    print!("Transcontinental Stocks is Alive at Localhost::9088!!!");
     Ok(())
 }
+

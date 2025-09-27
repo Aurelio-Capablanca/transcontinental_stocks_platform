@@ -1,7 +1,10 @@
-use std::sync::Arc;
-use deadpool_postgres::{Config, Manager, ManagerConfig, Object, Pool, RecyclingMethod};
-use tokio_postgres::{Client, GenericClient, NoTls};
+use deadpool_postgres::{Config, ManagerConfig, Object, Pool, RecyclingMethod};
+use tokio_postgres::{NoTls};
 
+
+pub struct DatabaseState{
+    pub database: Object<>
+}
 
 pub async fn create_postgres_pool() -> Result<Object<>, Box<dyn std::error::Error>>{
 
