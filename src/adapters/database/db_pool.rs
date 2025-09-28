@@ -1,8 +1,7 @@
 use deadpool_postgres::{Config, ManagerConfig, Object, Pool, RecyclingMethod};
 use tokio_postgres::{NoTls};
 
-
-pub struct DatabaseState{
+pub struct ApplicationState{
     pub database: Object<>
 }
 

@@ -1,5 +1,4 @@
 use core::fmt;
-use std::io;
 
 use axum::{
     Json,

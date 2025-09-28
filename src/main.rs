@@ -7,9 +7,12 @@ use crate::business::controller::test_controllers;
 use axum::{Router, routing::get};
 use std::sync::Arc;
 
+
+
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let manager = Arc::new(db_pool::DatabaseState {
+    let manager = Arc::new(db_pool::ApplicationState {
         database: db_pool::create_postgres_pool().await?,
     });
     

@@ -5,7 +5,7 @@ use serde::Serialize;
 use tokio_postgres::GenericClient;
 
 use crate::adapters::{
-    database::db_pool::DatabaseState,
+    database::db_pool::ApplicationState,
     general::general_responses::{GeneralResponses, StopOperations},
 };
 
@@ -20,7 +20,7 @@ pub struct TestSql {
 }
 
 pub async fn test_sql(
-    State(status): State<Arc<DatabaseState>>,
+    State(status): State<Arc<ApplicationState>>,
 ) -> Result<GeneralResponses<Vec<TestSql>>, StopOperations> {
     let client = status.database.client();
 
