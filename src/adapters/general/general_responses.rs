@@ -1,4 +1,5 @@
 use core::fmt;
+use std::io;
 
 use axum::{
     Json,
@@ -26,6 +27,7 @@ impl<T: serde::Serialize> IntoResponse for GeneralResponses<T> {
     }
 }
 
+#[derive(Debug)]
 pub enum StopOperations {
     IO(std::io::Error),
     JSON(serde_json::Error),
@@ -40,7 +42,7 @@ pub enum StopOperations {
         hint: Option<String>,
     },
     JWT(jsonwebtoken::errors::Error),
-    InternalMessage(&'static str),
+    InternalMessage(String),
 }
 
 impl From<jsonwebtoken::errors::Error> for StopOperations {
@@ -52,6 +54,25 @@ impl From<jsonwebtoken::errors::Error> for StopOperations {
 impl From<std::io::Error> for StopOperations {
     fn from(err: std::io::Error) -> Self {
         StopOperations::IO(err)
+    }
+}
+
+impl From<tokio_postgres::Error> for StopOperations {
+    fn from(err: tokio_postgres::Error) -> Self {
+        if let Some(db_err) = err.as_db_error() {
+            StopOperations::DB {
+                mapped_nature_err: "",
+                severity: Some(db_err.severity().to_string()),
+                schema: Some(db_err.schema().unwrap_or("").to_string()),
+                column: Some(db_err.schema().unwrap_or("").to_string()),
+                constraint: Some(db_err.constraint().unwrap_or("").to_string()),
+                datatype: Some(db_err.datatype().unwrap_or("").to_string()),
+                line_error: db_err.line(),
+                hint: Some(db_err.hint().unwrap_or("").to_string()),
+            }
+        } else {
+            StopOperations::InternalMessage(format!("Non-DB error: {err}"))
+        }
     }
 }
 
@@ -104,22 +125,66 @@ impl fmt::Display for StopOperations {
 
 impl axum::response::IntoResponse for StopOperations {
     fn into_response(self) -> Response {
-        let final_status = match &self {
-            StopOperations::IO(_) | StopOperations::DB { .. } => {
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR
-            }
-            StopOperations::JSON(_)
-            | StopOperations::JWT(_)
-            | StopOperations::InternalMessage(_) => axum::http::StatusCode::BAD_REQUEST,
+        let (final_status, json_details) = match &self {
+            StopOperations::IO(err) => (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!({
+                    "type" : "IO Error",
+                    "details" : err.to_string()
+                }),
+            ),
+            StopOperations::DB {
+                mapped_nature_err,
+                severity,
+                schema,
+                column,
+                constraint,
+                datatype,
+                line_error,
+                hint,
+            } => (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!({
+                    "type" : "Database Error",
+                    "mapped_nature_err": mapped_nature_err,
+                    "severity": severity,
+                    "schema": schema ,
+                    "column": column ,
+                    "constraint": constraint,
+                    "datatype": datatype,
+                    "line_error": line_error,
+                    "hint": hint
+                }),
+            ),
+            StopOperations::JSON(err) => (
+                axum::http::StatusCode::BAD_REQUEST,
+                serde_json::json!({
+                "type" : "JSON Error",
+                    "details" : err.to_string()
+                }),
+            ),
+            StopOperations::JWT(err) => (
+                axum::http::StatusCode::BAD_REQUEST,
+                serde_json::json!({
+                    "type" : "JWT Error",
+                    "details" : err.to_string()
+                }),
+            ),
+            StopOperations::InternalMessage(err) => (
+                axum::http::StatusCode::BAD_REQUEST,
+                serde_json::json!({
+                    "type" : "Internal Message",
+                    "details" : err.to_string()
+                }),
+            ),
         };
-        let error_string = self.to_string();
         (
             final_status,
             axum::Json(serde_json::json!(GeneralResponses {
                 message: Some("Platform Error".to_string()),
                 dataset: Some("".to_string()),
                 code: Some(final_status.as_str().to_string()),
-                error: Some(error_string.to_string())
+                error: Some(json_details.to_string())
             })),
         )
             .into_response()

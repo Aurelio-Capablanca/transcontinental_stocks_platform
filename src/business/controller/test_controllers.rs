@@ -14,14 +14,14 @@ pub async fn hello_world() -> &'static str {
 }
 
 #[derive(Serialize)]
-pub struct testSQL {
+pub struct TestSql {
     id: i32,
     constellation: String,
 }
 
 pub async fn test_sql(
     State(status): State<Arc<DatabaseState>>,
-) -> Result<GeneralResponses<Vec<testSQL>>, StopOperations> {
+) -> Result<GeneralResponses<Vec<TestSql>>, StopOperations> {
     let client = status.database.client();
 
     let constellation = "Wyvern".to_string();
@@ -36,14 +36,14 @@ pub async fn test_sql(
     let rows = client
         .query("select * from test_data td", &[])
         .await
-        .unwrap();
+        .map_err(|err| StopOperations::from(err))?;
 
-    let mut response: Vec<testSQL> = Vec::new();
+    let mut response: Vec<TestSql> = Vec::new();
     for r in &rows {
         let id: i32 = r.get(0);
         let value: String = r.get(1);
         println!("id={:?}, col={:?}", &id, &value);
-        response.push(testSQL {
+        response.push(TestSql {
             id: id,
             constellation: value,
         });

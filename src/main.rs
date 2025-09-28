@@ -1,7 +1,8 @@
 mod adapters;
 mod business;
 
-use crate::{adapters::database::db_pool, /*adapters::general ,*/business::controller::test_controllers::test_sql};
+
+use crate::{adapters::database::db_pool, /*adapters::general ,*/};
 use crate::business::controller::test_controllers;
 use axum::{Router, routing::get};
 use std::sync::Arc;
@@ -14,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     let app = Router::new()
         .route("/", get(test_controllers::hello_world))
-        .route("/test-sql", get(test_sql))
+        .route("/test-sql", get(test_controllers::test_sql))
         .with_state(manager);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:9088").await.unwrap();
     axum::serve(listener, app).await.unwrap();
