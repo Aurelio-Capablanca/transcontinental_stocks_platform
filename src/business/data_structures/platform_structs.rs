@@ -1,14 +1,18 @@
 /*
-id_user serial constraint PK_devtest_id_user primary key,
-user_name varchar(30) not null,
-user_lastname varchar(30) not null,
-user_phone varchar(30) not null,
-user_email varchar(30) not null
+id_user 
+user_name
+user_lastname
+user_phone
+user_email
  */
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Users {
-    id_user: i64,
-    user_name: String,
-    user_lastname: String,
-    user_phone: String,
-    user_email: String,
+    pub id_user: i64,
+    pub user_name: String,
+    pub user_lastname: String,
+    pub user_phone: String,
+    pub user_email: String,
 }
