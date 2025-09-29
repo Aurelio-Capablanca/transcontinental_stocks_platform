@@ -1,11 +1,9 @@
 use std::sync::Arc;
 
-use axum::{Json, extract::State};
-use tokio_postgres::{GenericClient, Row};
-
+use tokio_postgres::{GenericClient};
+use crate::business::data_structures::platform_structs::ApplicationState;
 use crate::{
     adapters::{
-        database::db_pool::ApplicationState,
         general::general_responses::{GeneralResponses, StopOperations},
     },
     business::data_structures::platform_structs::Users,
@@ -15,7 +13,7 @@ pub async fn create_users(
     state: Arc<ApplicationState>,
     users: Users,
 ) -> Result<GeneralResponses<String>, StopOperations> {
-    let db_client = state.database.client();
+    let db_client = state.database_postgres.client();
     let row = db_client
         .query_one(
             "INSERT INTO dev_test.users

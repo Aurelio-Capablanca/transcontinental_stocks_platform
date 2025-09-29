@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
 use axum::{Json, extract::State};
-
+use crate::business::data_structures::platform_structs::ApplicationState;
 use crate::{
-    adapters::{
-        database::db_pool::ApplicationState,
+    adapters::{        
         general::general_responses::{GeneralResponses, StopOperations},
     },
     business::{data_structures::platform_structs::Users, logic::users_business_logic},

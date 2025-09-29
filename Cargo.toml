@@ -10,6 +10,7 @@ deadpool-postgres = "0.14.1"
 dotenvy = "0.15.7"
 futures = { version = "0.3.31", default-features = false, features = ["async-await"] }
 jsonwebtoken = "9.3.1"
+redis = { version = "0.32.6", features = ["tokio-comp"] }
 ring = "0.17.14"
 serde = { version = "1.0.225", features = ["derive"] }
 serde_json = "1.0.145"
@@ -17,3 +18,4 @@ tokio = { version = "1.47.1", features = ["full", "macros", "rt-multi-thread"] }
 tokio-postgres = "0.7.13"
 tower = { version = "0.5.2", features = ["full"] }
 tower-http = { version = "0.6.6", features = ["cors"] }
+uuid = { version = "1.18.1", features = ["serde", "v4"] }

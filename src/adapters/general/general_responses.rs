@@ -1,5 +1,4 @@
 use core::fmt;
-
 use axum::{
     Json,
     response::{IntoResponse, Response},
@@ -27,7 +26,7 @@ impl<T: serde::Serialize> IntoResponse for GeneralResponses<T> {
 }
 
 #[derive(Debug)]
-pub enum StopOperations {
+pub enum StopOperations {    
     IO(std::io::Error),
     JSON(serde_json::Error),
     DB {
@@ -41,7 +40,24 @@ pub enum StopOperations {
         hint: Option<String>,
     },
     JWT(jsonwebtoken::errors::Error),
+    Redis(redis::RedisError),
     InternalMessage(String),
+    DeadPoolPostgres(deadpool_postgres::ConfigError)
+}
+
+
+impl std::error::Error for StopOperations {}
+
+impl From<deadpool_postgres::ConfigError> for StopOperations {
+    fn from(err: deadpool_postgres::ConfigError) -> Self {
+        StopOperations::DeadPoolPostgres(err)
+    }
+}
+
+impl From<redis::RedisError> for StopOperations {
+    fn from(err: redis::RedisError) -> Self {
+        StopOperations::Redis(err)
+    }
 }
 
 impl From<jsonwebtoken::errors::Error> for StopOperations {
@@ -100,6 +116,8 @@ impl From<serde_json::Error> for StopOperations {
 impl fmt::Display for StopOperations {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            StopOperations::DeadPoolPostgres(e) => write!(f,"Deadpool Error {}",e),
+            StopOperations::Redis(e) => write!(f,"Redis Error {}",e),
             StopOperations::IO(e) => write!(f, "IO error: {}", e),
             StopOperations::DB {
                 mapped_nature_err,
@@ -125,6 +143,20 @@ impl fmt::Display for StopOperations {
 impl axum::response::IntoResponse for StopOperations {
     fn into_response(self) -> Response {
         let (final_status, json_details) = match &self {
+            StopOperations::DeadPoolPostgres(err) => (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!({
+                    "type" : "Deadpool error",
+                    "details" : err.to_string()
+                })
+            ),
+            StopOperations::Redis(err) => (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!({
+                    "type" : "Redis Error",
+                    "details" : err.to_string()
+                })
+            ),
             StopOperations::IO(err) => (
                 axum::http::StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!({

@@ -3,9 +3,8 @@ use std::sync::Arc;
 use axum::extract::State;
 use serde::Serialize;
 use tokio_postgres::GenericClient;
-
+use crate::business::data_structures::platform_structs::ApplicationState;
 use crate::adapters::{
-    database::db_pool::ApplicationState,
     general::general_responses::{GeneralResponses, StopOperations},
 };
 
@@ -22,7 +21,7 @@ pub struct TestSql {
 pub async fn test_sql(
     State(status): State<Arc<ApplicationState>>,
 ) -> Result<GeneralResponses<Vec<TestSql>>, StopOperations> {
-    let client = status.database.client();
+    let client = status.database_postgres.client();
 
     let constellation = "Wyvern".to_string();
     let number_rows = client
