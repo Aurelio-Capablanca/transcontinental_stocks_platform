@@ -1,5 +1,4 @@
-use redis::{aio::MultiplexedConnection, AsyncCommands, Client, RedisResult};
-
+use redis::{aio::MultiplexedConnection, Client};
 use crate::adapters::general::general_responses::StopOperations;
 
 

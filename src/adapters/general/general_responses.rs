@@ -42,7 +42,7 @@ pub enum StopOperations {
     JWT(jsonwebtoken::errors::Error),
     Redis(redis::RedisError),
     InternalMessage(String),
-    DeadPoolPostgres(deadpool_postgres::ConfigError)
+    DeadPoolPostgres(deadpool_postgres::ConfigError),
 }
 
 
