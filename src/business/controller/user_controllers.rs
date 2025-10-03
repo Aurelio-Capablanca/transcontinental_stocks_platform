@@ -14,5 +14,5 @@ pub async fn create_first_user(
     State(state): State<Arc<ApplicationState>>,
     Json(body): Json<Users>,
 ) -> Result<GeneralResponses<String>, StopOperations> {
-    users_business_logic::create_users(state, body).await
+    users_business_logic::sign_users(state, body).await
 }

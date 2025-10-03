@@ -1,2 +1,3 @@
 pub mod postgres_pool;
 pub mod redis_pool;
+pub mod repository;

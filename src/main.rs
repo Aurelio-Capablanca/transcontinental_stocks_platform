@@ -2,6 +2,7 @@ mod adapters;
 mod business;
 
 use crate::adapters::database::redis_pool;
+use crate::adapters::security::login_handler::login_actions;
 use crate::business::data_structures::platform_structs::ApplicationState;
 use crate::business::controller::{test_controllers, user_controllers};
 use crate::{adapters::database::postgres_pool /*adapters::general ,*/};
@@ -41,6 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "/users/create-user",
             post(user_controllers::create_first_user),
         )
+        .route("/api/login", post(login_actions))
         .with_state(manager)
         .layer(cors);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:9088").await.unwrap();
