@@ -3,8 +3,8 @@ mod business;
 
 use crate::adapters::database::redis_pool;
 use crate::adapters::security::login_handler::login_actions;
-use crate::business::data_structures::platform_structs::ApplicationState;
 use crate::business::controller::{test_controllers, user_controllers};
+use crate::business::data_structures::platform_structs::ApplicationState;
 use crate::{adapters::database::postgres_pool /*adapters::general ,*/};
 use axum::routing::post;
 use axum::{
@@ -13,19 +13,17 @@ use axum::{
     routing::get,
 };
 use std::sync::Arc;
+use tower::layer;
 use tower_http::cors::CorsLayer;
-
-
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     // let postgres_connection = postgres_pool::create_postgres_pool().await;
     // let redis_connection = redis_pool::connect_redis_client().await;
 
     let manager = Arc::new(ApplicationState {
         database_postgres: postgres_pool::create_postgres_pool().await?,
-        database_redis: redis_pool::connect_redis_client().await.unwrap()
+        database_redis: redis_pool::connect_redis_client().await.unwrap(),
     });
 
     let cors = CorsLayer::new().allow_headers([
