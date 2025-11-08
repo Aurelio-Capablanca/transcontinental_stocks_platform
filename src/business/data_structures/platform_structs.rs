@@ -7,13 +7,7 @@ pub struct ApplicationState {
     pub database_redis: MultiplexedConnection,
 }
 
-/*
-id_user
-user_name
-user_lastname
-user_phone
-user_email
- */
+/*Users */
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Users {
@@ -39,3 +33,4 @@ pub struct LoginUser {
     pub user_email: String,
     pub user_password: String,
 }
+/*Users */

@@ -13,7 +13,6 @@ use axum::{
     routing::get,
 };
 use std::sync::Arc;
-use tower::layer;
 use tower_http::cors::CorsLayer;
 
 #[tokio::main]

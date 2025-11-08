@@ -9,7 +9,6 @@ use crate::{
     business::{data_structures::platform_structs::Users, logic::users_business_logic},
 };
 
-
 pub async fn create_first_user(
     State(state): State<Arc<ApplicationState>>,
     Json(body): Json<Users>,
