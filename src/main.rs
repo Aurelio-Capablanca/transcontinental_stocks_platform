@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         axum::http::header::COOKIE,
     ]);
 
-    let app = Router::new()
+    let app: Router = Router::new()
         .route("/", get(test_controllers::hello_world))
         .route("/test-sql", get(test_controllers::test_sql))
         .route(
